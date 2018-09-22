@@ -1,0 +1,12 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<p>Something hidden here... </p>
+<form hidden="true">
+    <p>flag 2</p>
+    <p th:text="${username}"/>
+    <p th:text="${password}"/>
+</form>
+<a href="/Auth/challenge-two">Challenge two</a>
+</body>
+</html>
