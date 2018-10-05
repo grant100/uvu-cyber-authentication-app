@@ -1,0 +1,8 @@
+${AnsiColor.BLUE}   (          )
+${AnsiColor.BRIGHT_RED}   )\ (    ( /(    (  (
+${AnsiColor.BRIGHT_RED} (((_))\ ) )\())  ))\ )(
+${AnsiColor.BRIGHT_RED} )\__(()/(((_)\  /((_|()\
+${AnsiColor.RED}((/ __)(_)) |(_)(_))  ((_)
+${AnsiColor.RED} | (_| || | '_ \/ -_)| '_|
+${AnsiColor.RED}  \___\_, |_.__/\___||_|
+${AnsiColor.RED}      |__/
