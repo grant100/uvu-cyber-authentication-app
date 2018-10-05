@@ -4,7 +4,6 @@ package edu.uvu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -18,10 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import edu.uvu.cybersecurity.security.filters.JWTAuthenticationFilter;
 import edu.uvu.cybersecurity.security.providers.BasicAuthProvider;
 import edu.uvu.cybersecurity.security.JWTRepository;
-import edu.uvu.cybersecurity.security.providers.JWTAuthProvider;
 import edu.uvu.cybersecurity.security.session.UserService;
 
 import org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint;
@@ -36,13 +33,6 @@ import java.util.List;
 @EnableWebSecurity(debug = true)
 public class WebSecurity extends WebSecurityConfigurerAdapter {
 
-
-    @Value("${uvu.security.username}")
-    private String username;
-
-    @Value("${uvu.security.password}")
-    private String password;
-
     Logger logger = LoggerFactory.getLogger(WebSecurity.class);
 
     @Autowired
@@ -53,27 +43,10 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
         List<SecurityFilterChain> chains = new ArrayList<SecurityFilterChain>();
         chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/")));
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/challenge-one"),
-                basicAuthenticationFilter()));
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/challenge-two"),
-                digestAuthenticationFilter()));
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/challenge-three"),
-                basicAuthenticationFilter()));
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/challenge-four"),
-                jwtAuthenticationFilter()));
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/challenge-five"),
-                basicAuthenticationFilter()));
-
         chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/basic-authentication/**"),
                 basicAuthenticationFilter()));
         chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/digest-authentication/**"),
                 digestAuthenticationFilter()));
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/token-authentication/**"),
-               jwtAuthenticationFilter()));
-
-
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/super-admin"), basicAuthenticationFilter()));
-
         return new FilterChainProxy(chains);
     }
 
@@ -84,32 +57,16 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 .defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint(), new AntPathRequestMatcher("/basic-authentication/**"))
                 .defaultAuthenticationEntryPointFor(digestAuthenticationEntryPoint(), new AntPathRequestMatcher("/digest-authentication/**"))
 
-                .defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint(), new AntPathRequestMatcher("/challenge-one/**"))
-                .defaultAuthenticationEntryPointFor(digestAuthenticationEntryPoint(), new AntPathRequestMatcher("/challenge-two/**"))
-                .defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint(), new AntPathRequestMatcher("/challenge-three/**"))
-                .defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint(), new AntPathRequestMatcher("/challenge-five/**"))
                 .and()
                 .addFilterAt(authFilters(), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/").anonymous()
                 .antMatchers("/images/**").permitAll()
                 .antMatchers("/error").permitAll()
-                .antMatchers("/token/error").permitAll()
                 .antMatchers("/basic/error").permitAll()
                 .antMatchers("/digest/error").permitAll()
-
-                .antMatchers("/basic-authentication/**").hasAnyAuthority("ROLE_BASIC")
-                .antMatchers("/digest-authentication/**").hasAnyAuthority("ROLE_DIGEST")
-                .antMatchers("/token-authentication/**").hasAnyAuthority("ROLE_TOKEN")
-
-                .antMatchers("/challenge-one").hasAnyAuthority("ROLE_ONE")
-                .antMatchers("/challenge-two").hasAnyAuthority("ROLE_TWO")
-                .antMatchers("/challenge-three").hasAnyAuthority("ROLE_THREE")
-                .antMatchers("/challenge-four").hasAnyAuthority("ROLE_FOUR")
-                .antMatchers("/challenge-five").hasAnyAuthority("ROLE_FIVE")
-
-                .antMatchers("/super-admin").hasAnyAuthority("ROLE_SUPER_ADMIN")
-                .antMatchers("/**").hasAnyAuthority("ROLE_USER")
+                .antMatchers("/basic-authentication/**").authenticated()
+                .antMatchers("/digest-authentication/**").authenticated()
                 .anyRequest().denyAll()
                 .and()
                 .sessionManagement()
@@ -119,12 +76,6 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(basicAuthProvider());
-        auth.authenticationProvider(jwtAuthProvider());
-    }
-
-    @Bean
-    JWTAuthProvider jwtAuthProvider() {
-        return new JWTAuthProvider(userDetailsService);
     }
 
     @Bean
@@ -133,24 +84,18 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public JWTAuthenticationFilter jwtAuthenticationFilter() throws Exception{
-        return new JWTAuthenticationFilter(authenticationManager());
-    }
-
-    @Bean
     public DigestAuthenticationEntryPoint digestAuthenticationEntryPoint() {
         DigestAuthenticationEntryPoint entryPoint = new DigestAuthenticationEntryPoint();
         entryPoint.setKey("acegi");
-        entryPoint.setRealmName("digest-realm!");
+        entryPoint.setRealmName("digest-realm");
         entryPoint.setNonceValiditySeconds(1800);
         return entryPoint;
     }
 
     @Bean
     public BasicAuthenticationEntryPoint basicAuthenticationEntryPoint() {
-        String flag1 ="u:p "+username+" "+password;
         BasicAuthenticationEntryPoint entryPoint = new BasicAuthenticationEntryPoint();
-        entryPoint.setRealmName("challenge-one {flag: "+flag1+"}");
+        entryPoint.setRealmName("basic-realm");
         return entryPoint;
     }
 
