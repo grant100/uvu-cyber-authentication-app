@@ -6,14 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.io.IOException;
 
 
 @Controller
@@ -60,7 +59,18 @@ public class CyberController {
 
         String url = base + ":" + port + context + path;
         logger.debug("Issuing {} on {}", HttpMethod.GET, url);
-        ResponseEntity<UserData> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, UserData.class);
+        ResponseEntity<UserData> responseEntity;
+
+        try{
+            responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, UserData.class);
+        }catch(Exception e){
+            logger.error("Basic Auth JWt call failed {}",e);
+            ModelAndView mav = new ModelAndView();
+            mav.setViewName("oops.html");
+            mav.addObject("message",e.getMessage());
+            return mav;
+        }
+
         UserData data = responseEntity.getBody();
 
         ModelAndView mav = new ModelAndView();
@@ -83,7 +93,19 @@ public class CyberController {
 
         String url = base + ":" + port + context + path;
         logger.debug("Issuing {} on {}", HttpMethod.GET, url);
-        ResponseEntity<UserData> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, UserData.class);
+        ResponseEntity<UserData> responseEntity;
+
+        try{
+             responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, UserData.class);
+        }catch(Exception e){
+            logger.error("Digest Auth JWT call failed {}",e);
+            ModelAndView mav = new ModelAndView();
+            mav.setViewName("oops.html");
+            mav.addObject("message",e.getMessage());
+            return mav;
+        }
+
+
         UserData data = responseEntity.getBody();
 
         ModelAndView mav = new ModelAndView();
@@ -104,4 +126,5 @@ public class CyberController {
     public String basicError() {
         return "basic error!";
     }
+
 }

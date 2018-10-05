@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>Oops</title>
+</head>
+<body>
+<h1>Looks like the API encountered an oopsie! </h1>
+<p>
+    Some tips:
+    <li>
+    Make sure that the api is running.
+    </li>
+<li>
+    Make sure that the API configurations are correct
+</li>
+</p>
+<p>
+    <b>Error Message:</b><p> <span th:text="${message}">null</span></p>
+</p>
+</body>
+</html>
